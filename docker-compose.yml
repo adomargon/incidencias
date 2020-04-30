@@ -1,0 +1,10 @@
+version: '3'
+ 
+services:
+  web:
+    image: php:7.4.5-apache
+    container_name: php_server
+    ports:
+      - "80:80"
+    volumes:
+      - C:/Users/adolfo/Desktop/incidencias/www/:/var/www/html/
