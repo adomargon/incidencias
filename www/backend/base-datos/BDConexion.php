@@ -1,5 +1,5 @@
 <?php
-include "{$_SERVER['DOCUMENT_ROOT']}/backend/base-datos/configuracion.php";
+include "../base-datos/configuracion.php";
 
 class BDConexion {
     private $conexion;
@@ -29,7 +29,6 @@ class BDConexion {
 
     //------------------------------------------------------------------------------------
     public function seleccionar($sql) {
-        //if ($resultado->num_rows === 0) {
         $this->abrir_conexion();
         if ($this->error_numero) {
             return false;
@@ -42,13 +41,14 @@ class BDConexion {
             return false;
         }
 
-        $this->filas_afectadas = $resultado->num_rows;
+        $this->filas_afectadas = $this->conexion->affected_rows;
+
         $this->resultado = Array();
         while ($registro = $resultado->fetch_assoc()) {
             array_push($this->resultado, $registro);
         }
-
         $resultado->free();
+
         $this->cerrar_conexion(); 
         return true;       
     }
@@ -86,9 +86,11 @@ class BDConexion {
             $this->error_mensaje = $this->conexion->error;
             return false;
         }
+        
+        $this->filas_afectadas = $this->conexion->affected_rows;
 
         $this->cerrar_conexion(); 
-        return $resultado;       
+        return true;       
     }
 }
 ?>

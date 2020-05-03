@@ -11,12 +11,13 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
             echo json_encode(array("estado" => "error", "mensaje" => "Falta el código de incidencia"));
             exit;
         }
-
-        $seleccion_sql = "SELECT * FROM incidencias WHERE id=\"" . $_GET["incidencia"] . "\"";
-    } else {
-        $seleccion_sql = "SELECT * FROM incidencias";
     }
-
+    
+    $seleccion_sql = "SELECT * FROM incidencias";
+    if (isset($_GET["incidencia"])) {
+        $seleccion_sql = $seleccion_sql . " WHERE id=\"" . $_GET["incidencia"] . "\"";
+    }
+    
     include "{$_SERVER['DOCUMENT_ROOT']}/backend/base-datos/BDConexion.php";
 
     $conexion = new BDConexion();
@@ -31,11 +32,21 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
         exit;
     }
 
+    //Comprobamos que ha seleccionado al menos una fila
+    if (isset($_GET["incidencia"]) && $conexion->filas_afectadas == 0) {
+        header('HTTP/ 400 Solicitud incorrecta');
+        echo json_encode(array(
+            "estado" => "error", 
+            "mensaje" => "No se ha recuperado ninguna incidencia"
+        ));
+        exit;
+    }
+
     header('HTTP/ 200 Solicitud correcta');
     echo json_encode(array(
         "estado" => "exito", 
         "mensaje" => "Incidencias enviadas", 
-        "resultado" => $resultado
+        "resultado" => $conexion->resultado
     ));
 
     exit;
@@ -107,7 +118,51 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     exit;
 }
 
-//--------------------- GET ------------------------------------------------
+//--------------------- DELETE ---------------------------------------------
+if ($_SERVER["REQUEST_METHOD"] == "DELETE") {
+    //Si envían el código de incidencia solo recuperamos esa incidencia, en otro caso las recuperamos todas
+    if (!isset($_GET["incidencia"]) || $_GET["incidencia"] == "") {
+        header('HTTP/ 400 Solicitud incorrecta');
+        echo json_encode(array("estado" => "error", "mensaje" => "Falta el código de incidencia"));
+        exit;
+    }
+    
+    $seleccion_sql = "DELETE FROM incidencias WHERE id=\"" . $_GET["incidencia"] . "\"";
+    
+    include "{$_SERVER['DOCUMENT_ROOT']}/backend/base-datos/BDConexion.php";
+
+    $conexion = new BDConexion();
+    $resultado = $conexion->eliminar($seleccion_sql);
+
+    if ($conexion->error_numero) {
+        header('HTTP/ 400 Solicitud incorrecta');
+        echo json_encode(array(
+            "estado" => "error", 
+            "mensaje" => "Incidencia no eliminada: ($conexion->error_numero) $conexion->error_mensaje"
+        ));
+        exit;
+    }
+
+    //Comprobamos que ha eliminado al menos una fila
+    if ($conexion->filas_afectadas == 0) {
+        header('HTTP/ 400 Solicitud incorrecta');
+        echo json_encode(array(
+            "estado" => "error", 
+            "mensaje" => "No se ha eliminado ninguna incidencia"
+        ));
+        exit;
+    }
+
+    header('HTTP/ 200 Solicitud correcta');
+    echo json_encode(array(
+        "estado" => "exito", 
+        "mensaje" => "Incidencia eliminada"
+    ));
+
+    exit;
+}
+
+
 //--------------------- GET ------------------------------------------------
 
 
