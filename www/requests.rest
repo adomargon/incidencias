@@ -1,5 +1,5 @@
 
-GET http://127.0.0.1/incidencias/8 HTTP/1.1
+GET http://127.0.0.1/incidencias/12 HTTP/1.1
 
 ###
 
@@ -18,7 +18,18 @@ descripcion_corta=La mesa del profesor está sucia
 
 ###
 
-DELETE http://127.0.0.1/incidencias/9 HTTP/1.1
+DELETE http://127.0.0.1/incidencias/11 HTTP/1.1
+
+###
+PUT http://127.0.0.1/incidencias HTTP/1.1
+Content-Type: application/x-www-form-urlencoded
+
+incidencia_id=12
+&descripcion_corta=La mesa del profesor está sucia
+&fecha=2005/05/05
+&aula_id=5
+&profesor_id=9
+&descripcion_larga=Los alumnos han ensuciado la mesa
 
 # POST http://127.0.0.1/incidencias HTTP/1.1
 # Content-Type: application/json

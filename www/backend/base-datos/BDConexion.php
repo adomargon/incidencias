@@ -92,5 +92,25 @@ class BDConexion {
         $this->cerrar_conexion(); 
         return true;       
     }
+
+    //------------------------------------------------------------------------------------
+    public function actualizar($sql) {
+        $this->abrir_conexion();
+        if ($this->error_numero) {
+            return false;
+        }
+
+        $resultado = $this->conexion->query($sql);
+        if (!$resultado) {
+            $this->error_numero = $this->conexion->errno;
+            $this->error_mensaje = $this->conexion->error;
+            return false;
+        }
+        
+        $this->filas_afectadas = $this->conexion->affected_rows;
+
+        $this->cerrar_conexion(); 
+        return true;       
+    }
 }
 ?>

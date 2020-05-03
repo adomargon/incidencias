@@ -10,6 +10,6 @@ RewriteEngine on
 
 RewriteRule ^incidencias$ backend/servicios/incidencias.php [NC]
 RewriteRule ^incidencias$ backend/servicios/incidencias.php
-RewriteRule ^incidencias/([0-9]+)$ backend/servicios/incidencias.php?incidencia=$1
+RewriteRule ^incidencias/([0-9]+)$ backend/servicios/incidencias.php?incidencia_id=$1
 
 #RewriteRule . frontend/error.php
