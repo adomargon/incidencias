@@ -1,0 +1,15 @@
+RewriteEngine on
+
+#RewriteCond %{SERVER_PORT} 80
+
+#RewriteBase /
+
+#RewriteCond %{REQUEST_FILENAME} !-f
+#RewriteCond %{REQUEST_FILENAME} !-d
+#RewriteCond %{REQUEST_FILENAME}.php -f
+
+RewriteRule ^incidencias$ backend/servicios/incidencias.php [NC]
+RewriteRule ^incidencias$ backend/servicios/incidencias.php
+RewriteRule ^incidencias/([0-9]+)$ backend/servicios/incidencias.php?incidencia=$1
+
+#RewriteRule . frontend/error.php
