@@ -4,11 +4,11 @@ header ("Content-type: application/json; charset=utf-8");
 
 //--------------------- GET ------------------------------------------------
 if ($_SERVER["REQUEST_METHOD"] == "GET") {
-    //Si envían el código de incidencia solo recuperamos esa incidencia, en otro caso las recuperamos todas
-    if (isset($_GET["incidencia_id"])) {
-        if ($_GET["incidencia_id"] == "") {
+    //Si envían el código de profesor solo recuperamos esa profesor, en otro caso las recuperamos todas
+    if (isset($_GET["profesor_id"])) {
+        if ($_GET["profesor_id"] == "") {
             header('HTTP/ 400 Solicitud incorrecta');
-            echo json_encode(array("estado" => "error", "mensaje" => "Falta el código de incidencia"));
+            echo json_encode(array("estado" => "error", "mensaje" => "Falta el código de profesor"));
             exit;
         }
     }
@@ -21,15 +21,15 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
         header('HTTP/ 400 Solicitud incorrecta');
         echo json_encode(array(
             "estado" => "error", 
-            "mensaje" => "Incidencias no enviadas: ($conexion->connect_errno) $conexion->connect_error"
+            "mensaje" => "Profesores no enviados: ($conexion->connect_errno) $conexion->connect_error"
         ));
         exit;
     }
     
     mysqli_set_charset($conexion, "utf8");
 
-    $sql = "SELECT id, descripcion_corta, descripcion_larga, fecha, aula_id, profesor_id FROM incidencias";
-    if (isset($_GET["incidencia_id"])) {
+    $sql = "SELECT id, nombre, apellidos FROM profesores";
+    if (isset($_GET["profesor_id"])) {
         $sql = $sql . " WHERE id=?";
     }
     $sql_preparada = $conexion->prepare($sql);
@@ -37,13 +37,13 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
         header('HTTP/ 400 Solicitud incorrecta');
         echo json_encode(array(
             "estado" => "error", 
-            "mensaje" => "Incidencias no enviadas: ($conexion->errno) $conexion->error"
+            "mensaje" => "Profesores no enviados: ($conexion->errno) $conexion->error"
         ));
         $conexion->close();
         exit;
     }
-    if (isset($_GET["incidencia_id"])) {
-        $sql_preparada->bind_param("i", $_GET["incidencia_id"]);
+    if (isset($_GET["profesor_id"])) {
+        $sql_preparada->bind_param("i", $_GET["profesor_id"]);
     }
 
     $sql_preparada->execute();
@@ -51,7 +51,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
         header('HTTP/ 400 Solicitud incorrecta');
         echo json_encode(array(
             "estado" => "error", 
-            "mensaje" => "Incidencias no enviadas: ($sql_preparada->errno) $sql_preparada->error"
+            "mensaje" => "Profesores no enviados: ($sql_preparada->errno) $sql_preparada->error"
         ));
         $conexion->close();
         exit;
@@ -60,19 +60,19 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
     $resultado = $sql_preparada->get_result();
 
     //Comprobamos que ha seleccionado al menos una fila
-    if (isset($_GET["incidencia_id"]) && $sql_preparada->affected_rows == 0) {
+    if (isset($_GET["profesor_id"]) && $sql_preparada->affected_rows == 0) {
         header('HTTP/ 400 Solicitud incorrecta');
         echo json_encode(array(
             "estado" => "error", 
-            "mensaje" => "No se ha recuperado ninguna incidencia"
+            "mensaje" => "No se ha recuperado ningún profesor"
         ));
         $conexion->close();
         exit;
     }   
 
-    $incidencias = Array();
+    $profesores = Array();
     while ($registro = $resultado->fetch_assoc()) {
-        array_push($incidencias, $registro);
+        array_push($profesores, $registro);
     }
 
     $sql_preparada->close();
@@ -82,8 +82,8 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
     header('HTTP/ 200 Solicitud correcta');
     echo json_encode(array(
         "estado" => "exito", 
-        "mensaje" => "Incidencias enviadas", 
-        "resultado" => $incidencias
+        "mensaje" => "Profesores enviados", 
+        "resultado" => $profesores
     ));
 
     exit;
@@ -91,35 +91,17 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
 
 //--------------------- POST------------------------------------------------
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    if (!isset($_POST["descripcion_corta"]) || $_POST["descripcion_corta"] == "") {
+    if (!isset($_POST["nombre"]) || $_POST["nombre"] == "") {
         header('HTTP/ 400 Solicitud incorrecta');
-        echo json_encode(array("estado" => "error", "mensaje" => "Falta el campo descripción corta"));
+        echo json_encode(array("estado" => "error", "mensaje" => "Falta el campo nombre"));
         exit;
     }
     
-    if (!isset($_POST["fecha"]) || $_POST["fecha"] == "") {
+    if (!isset($_POST["apellidos"]) || $_POST["apellidos"] == "") {
         header('HTTP/ 400 Solicitud incorrecta');
-        echo json_encode(array("estado" => "error", "mensaje" => "Falta el campo fecha"));
+        echo json_encode(array("estado" => "error", "mensaje" => "Falta el campo apellidos"));
         exit;
     }
-
-    if (!isset($_POST["aula_id"]) || $_POST["aula_id"] == "") {
-        header('HTTP/ 400 Solicitud incorrecta');
-        echo json_encode(array("estado" => "error", "mensaje" => "Falta el campo aula_id"));
-        exit;
-    }
-    
-    if (!isset($_POST["profesor_id"]) || $_POST["profesor_id"] == "") {
-        header('HTTP/ 400 Solicitud incorrecta');
-        echo json_encode(array("estado" => "error", "mensaje" => "Falta el campo profesor_id"));
-        exit;
-    }
-    
-    //Campo opcional
-    if (!isset($_POST["descripcion_larga"]) || $_POST["descripcion_larga"] == "")
-        $descripcion_larga = NULL;
-    else 
-        $descripcion_larga = $_POST["descripcion_larga"];
 
     include "../../backend/base-datos/configuracion.php";
 
@@ -128,34 +110,31 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         header('HTTP/ 400 Solicitud incorrecta');
         echo json_encode(array(
             "estado" => "error", 
-            "mensaje" => "Incidencia no creada: ($conexion->connect_errno) $conexion->connect_error"
+            "mensaje" => "Profesor no creado: ($conexion->connect_errno) $conexion->connect_error"
         ));
         exit;
     }
         
     mysqli_set_charset($conexion, "utf8");
 
-    $sql = "INSERT INTO `incidencias` " 
-        . "(`descripcion_corta`, `descripcion_larga`, `fecha`, `aula_id`, `profesor_id`) " 
-        . "VALUES (?, ?, ?, ?, ?)";
+    $sql = "INSERT INTO profesores " 
+        . "(nombre, apellidos) " 
+        . "VALUES (?, ?)";
 
     $sql_preparada = $conexion->prepare($sql);
     if ($conexion->errno) {        
         header('HTTP/ 400 Solicitud incorrecta');
         echo json_encode(array(
             "estado" => "error", 
-            "mensaje" => "Incidencia no creada: ($conexion->errno) $conexion->error"
+            "mensaje" => "Profesor no creado: ($conexion->errno) $conexion->error"
         ));
         $conexion->close();
         exit;
     }
 
-    $sql_preparada->bind_param("sssii", 
-        $_POST["descripcion_corta"], 
-        $_POST["descripcion_larga"], 
-        $_POST["fecha"], 
-        $_POST["aula_id"], 
-        $_POST["profesor_id"]
+    $sql_preparada->bind_param("ss", 
+        $_POST["nombre"], 
+        $_POST["apellidos"]
     );
 
     $sql_preparada->execute();
@@ -163,7 +142,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         header('HTTP/ 400 Solicitud incorrecta');
         echo json_encode(array(
             "estado" => "error", 
-            "mensaje" => "Incidencia no creada: ($sql_preparada->errno) $sql_preparada->error"
+            "mensaje" => "Profesor no creado: ($sql_preparada->errno) $sql_preparada->error"
         ));
         $conexion->close();
         exit;
@@ -175,7 +154,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     header('HTTP/ 200 Solicitud correcta');
     echo json_encode(array(
         "estado" => "exito", 
-        "mensaje" => "Incidencia creada"
+        "mensaje" => "Profesor creado"
     ));
 
     exit;
@@ -183,9 +162,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 //--------------------- DELETE ---------------------------------------------
 if ($_SERVER["REQUEST_METHOD"] == "DELETE") {
-    if (!isset($_GET["incidencia_id"]) || $_GET["incidencia_id"] == "") {
+    if (!isset($_GET["profesor_id"]) || $_GET["profesor_id"] == "") {
         header('HTTP/ 400 Eliminación incorrecta');
-        echo json_encode(array("estado" => "error", "mensaje" => "Falta el código de incidencia"));
+        echo json_encode(array("estado" => "error", "mensaje" => "Falta el código de profesor"));
         exit;
     }
     
@@ -197,33 +176,33 @@ if ($_SERVER["REQUEST_METHOD"] == "DELETE") {
         header('HTTP/ 400 Solicitud incorrecta');
         echo json_encode(array(
             "estado" => "error", 
-            "mensaje" => "Incidencia no eliminada: ($conexion->connect_errno) $conexion->connect_error"
+            "mensaje" => "Profesor no eliminado: ($conexion->connect_errno) $conexion->connect_error"
         ));
         exit;
     }
     
     mysqli_set_charset($conexion, "utf8");
     
-    $sql = "DELETE FROM incidencias WHERE id=?";
+    $sql = "DELETE FROM profesores WHERE id=?";
 
     $sql_preparada = $conexion->prepare($sql);
     if ($conexion->errno) {        
         header('HTTP/ 400 Solicitud incorrecta');
         echo json_encode(array(
             "estado" => "error", 
-            "mensaje" => "Incidencia no eliminada: ($conexion->errno) $conexion->error"
+            "mensaje" => "Profesor no eliminado: ($conexion->errno) $conexion->error"
         ));
         $conexion->close();
         exit;
     }
 
-    $sql_preparada->bind_param("i", $_GET["incidencia_id"]);
+    $sql_preparada->bind_param("i", $_GET["profesor_id"]);
     $sql_preparada->execute();
     if ($sql_preparada->errno) {
         header('HTTP/ 400 Solicitud incorrecta');
         echo json_encode(array(
             "estado" => "error", 
-            "mensaje" => "Incidencia no eliminada: ($sql_preparada->errno) $sql_preparada->error"
+            "mensaje" => "Profesor no eliminado: ($sql_preparada->errno) $sql_preparada->error"
         ));
         $conexion->close();
         exit;
@@ -234,7 +213,7 @@ if ($_SERVER["REQUEST_METHOD"] == "DELETE") {
         header('HTTP/ 400 Solicitud incorrecta');
         echo json_encode(array(
             "estado" => "error", 
-            "mensaje" => "Incidencia no eliminada"
+            "mensaje" => "Profesor no eliminado"
         ));
         $conexion->close();
         exit;
@@ -246,7 +225,7 @@ if ($_SERVER["REQUEST_METHOD"] == "DELETE") {
     header('HTTP/ 200 Solicitud correcta');
     echo json_encode(array(
         "estado" => "exito", 
-        "mensaje" => "Incidencia eliminada"
+        "mensaje" => "Profesor eliminado"
     ));
 
     exit;
@@ -257,51 +236,30 @@ if ($_SERVER["REQUEST_METHOD"] == "DELETE") {
 if ($_SERVER["REQUEST_METHOD"] == "PUT") {
     parse_str(file_get_contents('php://input'), $_PUT);
 
-    if (!isset($_PUT["incidencia_id"]) || $_PUT["incidencia_id"] == "") {
+    if (!isset($_PUT["profesor_id"]) || $_PUT["profesor_id"] == "") {
         header('HTTP/ 400 Solicitud incorrecta');
-        echo json_encode(array("estado" => "error", "mensaje" => "Falta el código de incidencia"));
+        echo json_encode(array("estado" => "error", "mensaje" => "Falta el código de profesor"));
         exit;
     }
 
-    $update_sql = "UPDATE `incidencias` SET "; 
+    $update_sql = "UPDATE profesores SET "; 
     $tipos = "";
+    $parametros = Array();
     $poner_coma = false;
 
-    if (isset($_PUT["descripcion_corta"]) && $_PUT["descripcion_corta"] != "") {
-        $update_sql = $update_sql . "descripcion_corta=?";
+    if (isset($_PUT["nombre"]) && $_PUT["nombre"] != "") {
+        $update_sql = $update_sql . "nombre=?";
         $tipos = $tipos . "s";
+        array_push($parametros, $_PUT["nombre"]);
         $poner_coma = true;
     }
     
-    if (isset($_PUT["descripcion_larga"]) || $_PUT["descripcion_larga"] != "") {
+    if (isset($_PUT["apellidos"]) || $_PUT["apellidos"] != "") {
         if ($poner_coma)
             $update_sql = $update_sql . ", ";
-        $update_sql = $update_sql . "descripcion_larga=?";
+        $update_sql = $update_sql . "apellidos=?";
         $tipos = $tipos . "s";
-        $poner_coma = true;
-    }
-
-    if (isset($_PUT["fecha"]) || $_PUT["fecha"] != "") {
-        if ($poner_coma)
-            $update_sql = $update_sql . ", ";
-        $update_sql = $update_sql . "fecha=?";
-        $tipos = $tipos . "s";
-        $poner_coma = true;
-    }
-
-    if (isset($_PUT["aula_id"]) || $_PUT["aula_id"] != "") {
-        if ($poner_coma)
-            $update_sql = $update_sql . ", ";
-        $update_sql = $update_sql . "aula_id=?";
-        $tipos = $tipos . "i";
-        $poner_coma = true;
-    }
-    
-    if (isset($_PUT["profesor_id"]) || $_PUT["profesor_id"] != "") {
-        if ($poner_coma)
-            $update_sql = $update_sql . ", ";
-        $update_sql = $update_sql . "profesor_id=?";
-        $tipos = $tipos . "i";
+        array_push($parametros, $_PUT["apellidos"]);
         $poner_coma = true;
     }
     
@@ -329,48 +287,30 @@ if ($_SERVER["REQUEST_METHOD"] == "PUT") {
     
     $sql = $update_sql . " WHERE id=?";
     $tipos = $tipos . "i";
+    array_push($parametros, $_PUT["profesor_id"]);
 
     $sql_preparada = $conexion->prepare($sql);
     if ($conexion->errno) {        
         header('HTTP/ 400 Solicitud incorrecta');
         echo json_encode(array(
             "estado" => "error", 
-            "mensaje" => "Incidencia no actualizada: ($conexion->errno) $conexion->error"
+            "mensaje" => "Profesor no actualizado: ($conexion->errno) $conexion->error"
         ));
         $conexion->close();
         exit;
     }
-
-    $sql_preparada->bind_param($tipos, 
-        $_PUT["descripcion_corta"], 
-        $_PUT["descripcion_larga"], 
-        $_PUT["fecha"], 
-        $_PUT["aula_id"], 
-        $_PUT["profesor_id"],
-        $_PUT["incidencia_id"]
-    );
+    $sql_preparada->bind_param($tipos, ...$parametros);
 
     $sql_preparada->execute();
     if ($sql_preparada->errno) {
         header('HTTP/ 400 Solicitud incorrecta');
         echo json_encode(array(
             "estado" => "error", 
-            "mensaje" => "Incidencia no actualizada: ($sql_preparada->errno) $sql_preparada->error"
+            "mensaje" => "Profesor no actualizado: ($sql_preparada->errno) $sql_preparada->error"
         ));
         $conexion->close();
         exit;
     }
-
-    // //Comprobamos que ha actualizado al menos una fila
-    // if ($sql_preparada->affected_rows == 0) {
-    //     header('HTTP/ 400 Actualización incorrecta');
-    //     echo json_encode(array(
-    //         "estado" => "error", 
-    //         "mensaje" => "No se ha actualizado ninguna incidencia"
-    //     ));
-    //     $conexion->close();
-    //     exit;
-    // }
 
     $sql_preparada->close();
     $conexion->close();
@@ -378,7 +318,7 @@ if ($_SERVER["REQUEST_METHOD"] == "PUT") {
     header('HTTP/ 200 Solicitud correcta');
     echo json_encode(array(
         "estado" => "exito", 
-        "mensaje" => "Incidencia actualizada"
+        "mensaje" => "Profesor actualizado"
     ));
 
     exit;    
