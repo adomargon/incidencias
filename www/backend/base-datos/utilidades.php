@@ -1,6 +1,6 @@
 <?php
 
-include "../../backend/base-datos/configuracion.php";
+include "configuracion.php";
 
 function chequear_operacion($conexion, $codigo_tecnico, $mensaje_tecnico, $mensaje_error) {
     if ($codigo_tecnico) {
@@ -18,7 +18,12 @@ function chequear_operacion($conexion, $codigo_tecnico, $mensaje_tecnico, $mensa
 
 function conectar_a_base_datos() {
     $conexion = new mysqli(BD_SERVIDOR, BD_USUARIO, BD_CONTRASENA, BD_BASE_DATOS);
-    chequear_operacion($conexion, $conexion->connect_errno, $conexion->connect_error, "No se ha podido conectar a la base de datos");
+    chequear_operacion(
+        $conexion, 
+        $conexion->connect_errno, 
+        $conexion->connect_error, 
+        "No se ha podido conectar a la base de datos"
+    );
 
     mysqli_set_charset($conexion, "utf8");
 
