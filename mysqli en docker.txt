@@ -1,9 +1,12 @@
-docker-php-ext-enable mysqli
-
+--dentro del servidor php
+--docker exec -it ??? /bin/bash
 docker-php-ext-install mysqli
+
+docker-php-ext-enable mysqli
 
 apachectl restart
 
+--fuera en docker
 docker commit -p <phpcontainerid> <new or same image name>
 
 

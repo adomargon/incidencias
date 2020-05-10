@@ -24,3 +24,7 @@ Content-Type: application/x-www-form-urlencoded
 id=25
 #&nombre=Jimena
 &apellidos=Roquetas Padrón
+
+###
+
+GET http://127.0.0.1/backend/servicios/profesores.php?id=4

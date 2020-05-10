@@ -7,4 +7,4 @@ services:
     ports:
       - "80:80"
     volumes:
-      - C:/Users/adolfo/Desktop/incidencias/www/:/var/www/html/
+      - ./www/:/var/www/html/

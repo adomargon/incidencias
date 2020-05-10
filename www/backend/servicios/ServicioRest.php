@@ -4,10 +4,12 @@ include "../base-datos/utilidades.php";
 class ServicioRest {
     private $tabla;
 
+    //---------------------------------------------------------------------
     public function __construct($tabla) {
         $this->tabla =  $tabla;
     }
 
+    //---------------------------------------------------------------------
     public function responder() {
         switch($_SERVER["REQUEST_METHOD"]) {
             case "GET":
@@ -21,58 +23,59 @@ class ServicioRest {
         }
     }
 
-    public function conseguir_metodo_get() {
-        //Si envían una clave recuperamos el campo de dicha clave, en otro caso las recuperamos todos los campos
-        if (isset($_GET[$this->tabla->conseguir_clave()])) {
-            comprobar_existencia_campo(
-                $_GET[$this->tabla->conseguir_clave()], 
-                "Tabla " . $this->tabla->conseguir_nombre() . ". Falta el valor de la clave " . $this->tabla->conseguir_clave()
-            );
-        }
+    //---------------------------------------------------------------------
+    private function conseguir_metodo_get() {
+        try {
+            //Si envían una clave recuperamos el campo de dicha clave, en otro caso las recuperamos todos los campos
+            if (isset($_GET[$this->tabla->conseguir_clave()])) {
+                $this->comprobar_existencia_campo(
+                    $_GET[$this->tabla->conseguir_clave()], 
+                    "Falta el valor de la clave " . $this->tabla->conseguir_clave()
+                );
+            }
+                        
+            $conexion = new Conexion;
+            $conexion->conectar_a_base_datos();
+            $sql = "SELECT * FROM " . $this->tabla->conseguir_nombre();
             
-        $conexion = conectar_a_base_datos();
-        $sql = "SELECT * FROM " . $this->tabla->conseguir_nombre();
-
-        if (isset($_GET[$this->tabla->conseguir_clave()])) {
-            $sql = $sql . " WHERE id=?";
+            if (isset($_GET[$this->tabla->conseguir_clave()])) {
+                $sql = $sql . " WHERE id=?";
+            }
+            $conexion->preparar_sentencia($sql);
+            
+            if (isset($_GET[$this->tabla->conseguir_clave()])) {
+                $conexion->ligar_parametros("i", $_GET[$this->tabla->conseguir_clave()]);
+            }            
+            $conexion->ejecutar_sentencia();            
+            $resultado = $conexion->conseguir_resultados();
+            
+            //Comprobamos que ha seleccionado al menos una fila
+            if (isset($_GET[$this->tabla->conseguir_clave()])) {
+                $this->chequear_recupera_una_fila($resultado);
+            }   
+            
+            $this->enviar_mensaje_exito_y_finalizar("Registros enviados", $resultado);
+        } catch (Throwable $exc) {
+            header("HTTP/ 400 Solicitud incorrecta");
+            echo json_encode(array(
+                "estado" => "error", 
+                "mensaje" => "($exc.getCode()) $exc.getMessage()"
+            ));
+        } 
+        finally {
+            $conexion->cerrar();
+            exit;
         }
-        $sql_preparada = preparar_sentencia(
-            $conexion, 
-            $sql, 
-            "Tabla " . $this->tabla->conseguir_nombre() . ". Registros no enviados"
-        );
-        
-        if (isset($_GET[$this->tabla->conseguir_clave()])) {
-            $sql_preparada->bind_param("i", $_GET[$this->tabla->conseguir_clave()]);
-        }
-    
-        ejecutar_sentencia($conexion, $sql_preparada, "Tabla " . $this->tabla->conseguir_nombre() . ". Registros no enviados");
-    
-        $resultado_sql = $sql_preparada->get_result();
-    
-        //Comprobamos que ha seleccionado al menos una fila
-        if (isset($_GET[$this->tabla->conseguir_clave()])) {
-            chequear_manipula_una_fila($conexion, $sql_preparada, "Tabla " . $this->tabla->conseguir_nombre() . ". Registro no enviado");
-        }   
-    
-        $resultado = convertir_resultado_sql_a_arreglo($resultado_sql);
-    
-        $sql_preparada->close();
-        $conexion->close();
-    
-        enviar_mensaje_exito_y_finalizar("Tabla " . $this->tabla->conseguir_nombre() . ". Registros enviados", $resultado);
     }
-
-    public function conseguir_metodo_delete() {
-        comprobar_existencia_campo(
-            $_GET[$this->tabla->conseguir_clave()], 
-            "Falta el valor de la clave " . $this->tabla->conseguir_clave()
-        );
-    
+        
+    //---------------------------------------------------------------------
+    private function conseguir_metodo_delete() {
+        comprobar_existencia_campo($_GET[$this->tabla->conseguir_clave()]);
+        
         $conexion = conectar_a_base_datos();
         
         $sql = "DELETE FROM profesores WHERE id=?";
-    
+            
         $sql_preparada = preparar_sentencia($conexion, $sql, "Registro no eliminado");
     
         $sql_preparada->bind_param($this->tabla->conseguir_campo($this->tabla->conseguir_clave())->conseguir_tipo(), $_GET[$this->tabla->conseguir_clave()]);
@@ -88,7 +91,8 @@ class ServicioRest {
         enviar_mensaje_exito_y_finalizar("Registro eliminado");
     }
 
-    public function conseguir_metodo_post() {
+    //---------------------------------------------------------------------
+    private function conseguir_metodo_post() {
         //Comprobamos que se han suministrado en la petición todos los campos obligatorios
         foreach ($this->tabla->conseguir_campos() as $campo) {
             if ($campo->conseguir_nombre() == $this->tabla->conseguir_clave())
@@ -138,7 +142,8 @@ class ServicioRest {
         enviar_mensaje_exito_y_finalizar("Registro creado");
     }
 
-    public function conseguir_metodo_put() {
+    //---------------------------------------------------------------------
+    private function conseguir_metodo_put() {
         parse_str(file_get_contents('php://input'), $_PUT);
 
         comprobar_existencia_campo(
@@ -188,6 +193,42 @@ class ServicioRest {
         $conexion->close();
     
         enviar_mensaje_exito_y_finalizar("Registro actualizado");
+    }
+
+    //---------------------------------------------------------------------
+    private function comprobar_existencia_campo($campo, $mensaje) {
+        if (!isset($campo) || $campo == "") {
+            header('HTTP/ 400 Solicitud incorrecta');
+            echo json_encode(array(
+                "estado" => "error", 
+                "mensaje" => "Falta el campo $campo"
+            ));
+            exit;
+        }
+    }
+
+    //---------------------------------------------------------------------
+    private function chequear_recupera_una_fila($resultado) {
+        if (count($resultado) == 0) {
+            header('HTTP/ 400 Solicitud incorrecta');
+            echo json_encode(array(
+                "estado" => "error", 
+                "mensaje" => "No se ha recuperado ningún registro"
+            ));
+            exit;
+        }
+    }
+
+    //---------------------------------------------------------------------
+    private function enviar_mensaje_exito_y_finalizar($mensaje, $resultado = NULL) {
+        header('HTTP/ 200 Solicitud correcta');
+        echo json_encode(array(
+            "estado" => "exito", 
+            "mensaje" => $mensaje,
+            "resultado" => $resultado
+        ));
+
+        exit;
     }
 }
 ?>
