@@ -8,12 +8,16 @@ RewriteEngine on
 #RewriteCond %{REQUEST_FILENAME} !-d
 #RewriteCond %{REQUEST_FILENAME}.php -f
 
-#RewriteRule ^incidencias$ backend/servicios/incidencias.php [NC]
-#RewriteRule ^incidencias$ backend/servicios/incidencias.php
-#RewriteRule ^incidencias/([0-9]+)$ backend/servicios/incidencias.php?id=$1
+RewriteRule ^incidencias$ backend/servicios/incidencias.php [NC]
+RewriteRule ^incidencias$ backend/servicios/incidencias.php
+RewriteRule ^incidencias/([0-9]+)$ backend/servicios/incidencias.php?id=$1
 
 RewriteRule ^profesores$ backend/servicios/profesores.php [NC]
 RewriteRule ^profesores$ backend/servicios/profesores.php
 RewriteRule ^profesores/([0-9]+)$ backend/servicios/profesores.php?id=$1
+
+RewriteRule ^aulas$ backend/servicios/aulas.php [NC]
+RewriteRule ^aulas$ backend/servicios/aulas.php
+RewriteRule ^aulas/([0-9]+)$ backend/servicios/aulas.php?id=$1
 
 #RewriteRule . frontend/error.php

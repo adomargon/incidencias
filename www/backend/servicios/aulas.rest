@@ -1,0 +1,29 @@
+
+GET http://127.0.0.1/aulas/9 HTTP/1.1
+
+###
+
+GET http://127.0.0.1/aulas HTTP/1.1
+
+###
+
+POST http://127.0.0.1/aulas HTTP/1.1
+Content-Type: application/x-www-form-urlencoded
+
+descripcion_corta=Plumier
+&descripcion_larga="Aula Plumier de ordenadores para ESO y Bachillerato",
+&capacidad=25
+
+###
+
+DELETE http://127.0.0.1/aulas/10 HTTP/1.1
+
+###
+PUT http://127.0.0.1/aulas HTTP/1.1
+Content-Type: application/x-www-form-urlencoded
+
+id=8
+&capacidad=50
+
+
+###
