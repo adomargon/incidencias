@@ -6,11 +6,12 @@ include "../base-datos/interfaces-clases.php";
 include './ServicioRest.php';
 
 $tabla = new Tabla(
-    "profesores",
+    "aulas",
     [
         new Campo("id", "i", true),
-        new Campo("nombre", "s", true),
-        new Campo("apellidos", "s", true)
+        new Campo("descripcion_corta", "s", true),
+        new Campo("descripcion_larga", "s", true),
+        new Campo("capacidad", "s", true)
     ],
     "id"
 );
