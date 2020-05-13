@@ -1,5 +1,5 @@
 
-GET http://127.0.0.1/incidencias/23 HTTP/1.1
+GET http://127.0.0.1/incidencias/2 HTTP/1.1
 
 ###
 
@@ -18,7 +18,7 @@ descripcion_corta=La mesa del profesor está sucia
 
 ###
 
-DELETE http://127.0.0.1/incidencias/23 HTTP/1.1
+DELETE http://127.0.0.1/incidencias/2 HTTP/1.1
 
 ###
 PUT http://127.0.0.1/incidencias HTTP/1.1

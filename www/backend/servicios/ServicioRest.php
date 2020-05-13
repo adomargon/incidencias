@@ -79,7 +79,7 @@ class ServicioRest {
             $conexion = new Conexion;
             $conexion->conectar_a_base_datos();
             
-            $sql = "DELETE FROM profesores WHERE id=?";
+            $sql = "DELETE FROM " . $this->tabla->conseguir_nombre() . " WHERE id=?";
                 
             $conexion->preparar_sentencia($sql, "Registro no eliminado");
         
