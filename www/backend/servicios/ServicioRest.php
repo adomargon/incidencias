@@ -50,11 +50,13 @@ class ServicioRest {
             $resultado = $conexion->conseguir_resultados();
             
             //Comprobamos que ha seleccionado al menos una fila
+            //Si es un elemento no se envía un arreglo
             if (isset($_GET[$this->tabla->conseguir_clave()])) {
                 $this->chequear_recupera_una_fila($resultado);
-            }   
-            
-            $this->enviar_mensaje_exito("Registros enviados", $resultado);
+                $this->enviar_mensaje_exito("Registro enviado", $resultado[0]);
+            } else {
+                $this->enviar_mensaje_exito("Registros enviados", $resultado);
+            }
         } catch (ConexionException $exc) {
             header("HTTP/ 400 Solicitud incorrecta");
             echo json_encode(array(
